@@ -10,16 +10,18 @@ from gestor_tareas import leer_datos, cumple_presupuesto, calcular_ganancia
 # Variables for historic values
 historic_gains = []
 historic_times = []
-
+execution_count = 0
 lock = threading.Lock()
 
 def mfc(proyectos_seleccionados, index, presupuesto_max, tareas_por_proyecto, costos, ganancias):
+    global execution_count
     if index == len(ganancias):
         cumple, _ = cumple_presupuesto(proyectos_seleccionados, presupuesto_max, tareas_por_proyecto, costos)
         if cumple:
             ganancia_total = calcular_ganancia(proyectos_seleccionados, ganancias)
             tiempo_actual = time.time() - start_time
             with lock:
+                execution_count += 1
                 historic_times.append(tiempo_actual)
                 historic_gains.append(ganancia_total)
         return
@@ -37,6 +39,9 @@ def moving_average(data, window_size):
 
 def animate(i):
     with lock:
+        print(f"Total executions: {execution_count}")
+        print(f"Time elapsed: {time.time() - start_time:.2f} seconds")
+        print(f"Executions per second: {execution_count/(time.time() - start_time):.2f}")
         plt.cla()
         if historic_times and historic_gains:
             # Compute moving average for a smoother plot
